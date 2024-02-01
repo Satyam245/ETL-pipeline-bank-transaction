@@ -22,5 +22,12 @@ subsDf = glueContext.create_dynamic_frame.from_catalog(
     )
 
 sparkSubsDf = subsDf.toDF()
-sparkSubsDf.write.mode('append').parquet('s3://your_processed_transaction_data_output_bucket/output/')
+
+# removing null transaction id
+filter_df = sparkSubsDf.na.drop(subset=['transaction_id'])
+
+# droping duplicate transaction id
+result_df = filter_df.dropDuplicates(subset=['transaction_id'])
+
+result_df.write.mode('append').parquet('s3://your_processed_transaction_data_output_bucket/output/')
 job.commit()
